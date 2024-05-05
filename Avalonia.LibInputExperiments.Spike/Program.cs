@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.LibInputExperiments;
 using Avalonia.LibInputExperiments.Spike;
 
@@ -19,18 +18,8 @@ var lib = new LibInputBackend(
 
 lib.Initialize(
   new ScreenInfo(),
-  ev =>
-  {
-    switch (ev)
-    {
-      case RawPointerEventArgs p:
-        Console.WriteLine($"{p.Type} {p.Point}");
-        break;
-      case RawKeyEventArgs k:
-        Console.WriteLine($"{k.Type} {k.Modifiers} {k.PhysicalKey} {k.Key} {k.KeySymbol}");
-        break;
-    }
-  });
+  ev => { }
+  );
 
 lib.SetInputRoot(new InputRoot());
 

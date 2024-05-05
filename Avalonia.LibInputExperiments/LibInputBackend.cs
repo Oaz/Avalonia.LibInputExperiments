@@ -18,18 +18,15 @@ namespace Avalonia.LibInputExperiments
     private Action<RawInputEventArgs>? _onInput;
     private readonly LibInputBackendOptions? _options;
 
-    public LibInputBackend()
+    public LibInputBackend(LibInputBackendOptions? options = default)
     {
-      _options = default;
-    }
-
-    public LibInputBackend(LibInputBackendOptions options)
-    {
+      Console.WriteLine("Using experimental LibInput backend");
       _options = options;
     }
-
+    
     private unsafe void InputThread(IntPtr ctx, LibInputBackendOptions options)
     {
+      Console.WriteLine("Starting InputThread");
       SetupKeyboard(options.Keyboard);
       var fd = libinput_get_fd(ctx);
 

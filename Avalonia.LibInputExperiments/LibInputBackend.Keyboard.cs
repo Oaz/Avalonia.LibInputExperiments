@@ -16,6 +16,12 @@ public partial class LibInputBackend
     _keyboard = AvaloniaLocator.CurrentMutable.GetService<IKeyboardDevice>();
 
     _xkbContext = xkb_context_new(XkbContextFlags.XKB_CONTEXT_NO_FLAGS);
+    if (_xkbContext == IntPtr.Zero)
+    {
+      Console.Error.WriteLine("Cannot initialize XKB context");
+      return;
+    }
+    
     var names = new XkbRuleNames
     {
       Rules = configuration.Rules,
@@ -29,10 +35,22 @@ public partial class LibInputBackend
       ref names,
       XkbKeymapCompileFlags.XKB_KEYMAP_COMPILE_NO_FLAGS
     );
+    if (_xkbKeymap == IntPtr.Zero)
+    {
+      Console.Error.WriteLine("Cannot initialize XKB keymap");
+      return;
+    }
+    Console.WriteLine($"Using keyboard: {configuration.Model} {configuration.Layout} {configuration.Variant}");
 
     _modifiers = FindModifiers(_xkbKeymap).ToArray();
 
     _xkbState = xkb_state_new(_xkbKeymap);
+    if (_xkbState == IntPtr.Zero)
+    {
+      Console.Error.WriteLine("Cannot initialize XKB state");
+      return;
+    }
+    
   }
 
   private static IEnumerable<Modifier> FindModifiers(IntPtr xkbKeymap)
@@ -71,7 +89,7 @@ public partial class LibInputBackend
   {
     var kbEv = libinput_event_get_keyboard_event(ev);
     if (kbEv == IntPtr.Zero)
-      return;
+      return; ;
     
     var scancode = libinput_event_keyboard_get_key(kbEv);
     var keycode = scancode + 8;
@@ -91,13 +109,7 @@ public partial class LibInputBackend
     foreach (var modifier in _modifiers)
       if (xkb_state_mod_index_is_active(_xkbState, modifier.Index, XkbStateComponent.XKB_STATE_MODS_EFFECTIVE) != 0)
         modifiers |= modifier.Raw;
-
-#if DEBUG
-    var keysymName = new StringBuilder();
-    xkb_keysym_get_name(keySym, keysymName, 64);
-    Console.WriteLine($"KEYBOARD {scancode} {symbol} {keySym} {keysymName}");
-#endif
-
+    
     if (_inputRoot == null)
       return;
     
@@ -113,6 +125,13 @@ public partial class LibInputBackend
       ScanCodeToPhysicalKey(scancode),
       symbol.ToString()
       );
+    
+#if DEBUG
+    var keySymName = new StringBuilder();
+    xkb_keysym_get_name(keySym, keySymName, 64);
+    Console.WriteLine($"{args.Type} {args.PhysicalKey}({scancode}) {args.Modifiers} {args.Key}({keySym})[{keySymName}] {args.KeySymbol}");
+#endif
+    
     ScheduleInput(args);
   }
 
@@ -215,7 +234,7 @@ public partial class LibInputBackend
       093 => PhysicalKey.None,
       094 => PhysicalKey.None,
       095 => PhysicalKey.None,
-      096 => PhysicalKey.None,
+      096 => PhysicalKey.NumPadEnter,
       097 => PhysicalKey.ControlRight,
       098 => PhysicalKey.NumPadDivide,
       099 => PhysicalKey.PrintScreen,
@@ -249,9 +268,16 @@ public partial class LibInputBackend
       127 => PhysicalKey.ContextMenu,
       128 => PhysicalKey.None,
       129 => PhysicalKey.None,
+      140 => PhysicalKey.LaunchApp2,
+      142 => PhysicalKey.Sleep,
       163 => PhysicalKey.MediaTrackNext,
       164 => PhysicalKey.MediaPlayPause,
       165 => PhysicalKey.MediaTrackPrevious,
+      190 => PhysicalKey.None, // audio mic mute
+      217 => PhysicalKey.BrowserSearch,
+      224 => PhysicalKey.None, // brightness -
+      225 => PhysicalKey.None, // brightness +
+      247 => PhysicalKey.None, // rf kill
       _ => PhysicalKey.None,
     };
 
@@ -259,6 +285,16 @@ public partial class LibInputBackend
   private static Key SymToKey(uint keySym) =>
     keySym switch
     {
+      049 => Key.D1,
+      050 => Key.D2,
+      051 => Key.D3,
+      052 => Key.D4,
+      053 => Key.D5,
+      054 => Key.D6,
+      055 => Key.D7,
+      056 => Key.D8,
+      057 => Key.D9,
+      058 => Key.D0,
       065 => Key.A,
       066 => Key.B,
       067 => Key.C,
@@ -285,12 +321,6 @@ public partial class LibInputBackend
       088 => Key.X,
       089 => Key.Y,
       090 => Key.Z,
-      091 => Key.None,
-      092 => Key.None,
-      093 => Key.None,
-      094 => Key.None,
-      095 => Key.None,
-      096 => Key.None,
       097 => Key.A,
       098 => Key.B,
       099 => Key.C,
@@ -317,6 +347,75 @@ public partial class LibInputBackend
       120 => Key.X,
       121 => Key.Y,
       122 => Key.Z,
+      5307 => Key.Escape,
+      65027 => Key.RightAlt,
+      65293 => Key.Return,
+      65360 => Key.Home,
+      65365 => Key.PageUp,
+      65366 => Key.PageDown,
+      65367 => Key.End,
+      65505 => Key.LeftShift,
+      65506 => Key.RightShift,
+      65507 => Key.LeftCtrl,
+      65508 => Key.RightCtrl,
+      65509 => Key.CapsLock,
+      65513 => Key.LeftAlt,
+      65515 => Key.LWin,
+      65289 => Key.Tab,
+      65361 => Key.Left,
+      65362 => Key.Up,
+      65363 => Key.Right,
+      65364 => Key.Down,
+      65379 => Key.Insert,
+      65407 => Key.NumLock,
+      65421 => Key.Enter, // NumPad
+      65429 => Key.Home, // Numpad
+      65430 => Key.Left, // Numpad
+      65431 => Key.Up, // NumPad
+      65432 => Key.Right, // NumPad
+      65433 => Key.Down, // NumPad
+      65434 => Key.PageUp, // NumPad
+      65435 => Key.PageDown, // NumPad
+      65436 => Key.End, // NumPad
+      65437 => Key.None, // NumPad Begin
+      65438 => Key.Insert, // NumPad
+      65439 => Key.Delete, // NumPad
+      65450 => Key.Multiply, // NumPad
+      65451 => Key.Add, // NumPad
+      65453 => Key.Subtract, // NumPad
+      65454 => Key.Decimal, // NumPad
+      65455 => Key.Divide, // NumPad
+      65456 => Key.NumPad0,
+      65457 => Key.NumPad1,
+      65458 => Key.NumPad2,
+      65459 => Key.NumPad3,
+      65460 => Key.NumPad4,
+      65461 => Key.NumPad5,
+      65462 => Key.NumPad6,
+      65463 => Key.NumPad7,
+      65464 => Key.NumPad8,
+      65465 => Key.NumPad9,
+      65470 => Key.F1,
+      65471 => Key.F2,
+      65472 => Key.F3,
+      65473 => Key.F4,
+      65474 => Key.F5,
+      65475 => Key.F6,
+      65476 => Key.F7,
+      65477 => Key.F8,
+      65478 => Key.F9,
+      65479 => Key.F10,
+      65480 => Key.F11,
+      65481 => Key.F12,
+      65535 => Key.Delete,
+      269025041 => Key.VolumeDown,
+      269025042 => Key.VolumeMute,
+      269025043 => Key.VolumeUp,
+      269025044 => Key.MediaPlayPause,
+      269025046 => Key.MediaPreviousTrack,
+      269025047 => Key.MediaNextTrack,
+      269025053 => Key.LaunchApplication2,
+      269025071 => Key.Sleep,
       _ => Key.None,
     };
 }

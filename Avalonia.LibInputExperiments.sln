@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{6F98C9FC-6
 		LICENSE = LICENSE
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.LibInputExperiments.Demo", "Avalonia.LibInputExperiments.Demo\Avalonia.LibInputExperiments.Demo.csproj", "{74F12896-CFDF-46DD-86FF-1CB9A978B048}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,5 +27,9 @@ Global
 		{BAF495B5-BA16-4234-A1DB-2846E62DA9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAF495B5-BA16-4234-A1DB-2846E62DA9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAF495B5-BA16-4234-A1DB-2846E62DA9F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74F12896-CFDF-46DD-86FF-1CB9A978B048}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74F12896-CFDF-46DD-86FF-1CB9A978B048}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74F12896-CFDF-46DD-86FF-1CB9A978B048}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74F12896-CFDF-46DD-86FF-1CB9A978B048}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
