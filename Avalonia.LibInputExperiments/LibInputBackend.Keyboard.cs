@@ -112,6 +112,8 @@ public partial class LibInputBackend
     if (_inputRoot == null)
       return;
 
+    var text = symbol.ToString();
+
     var args = new RawKeyEventArgs(
       _keyboard,
       libinput_event_keyboard_get_time_usec(kbEv),
@@ -120,7 +122,7 @@ public partial class LibInputBackend
       SymToKey(keySym),
       modifiers,
       ScanCodeToPhysicalKey(scancode),
-      symbol.ToString()
+      text
     );
     
 #if DEBUG
@@ -130,14 +132,14 @@ public partial class LibInputBackend
 #endif
     
     ScheduleInput(args);
-    
-    if (eventType.Value == RawKeyEventType.KeyDown)
+
+    if (eventType.Value == RawKeyEventType.KeyDown && !string.IsNullOrEmpty(text))
     {
       ScheduleInput(new RawTextInputEventArgs(
         _keyboard,
         libinput_event_keyboard_get_time_usec(kbEv),
         _inputRoot,
-        symbol.ToString()
+        text
       ));
     }
     
