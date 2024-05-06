@@ -20,10 +20,9 @@ class Program
 #if DEBUG
       .UsePlatformDetect()
 #endif  
-      .WithInterFont()
       .With(new FontManagerOptions
       {
-        DefaultFamilyName = "avares://Avalonia.Fonts.Inter/Assets#Inter"
+        DefaultFamilyName = "avares://Avalonia.LibInputExperiments.Demo/Assets/Noto_Sans_Symbols_2/NotoSansSymbols2-Regular.ttf#Noto Sans Symbols 2"
       })
       .LogToTrace(level:LogEventLevel.Verbose)
       .UseReactiveUI()

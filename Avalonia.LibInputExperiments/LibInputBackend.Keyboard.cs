@@ -21,7 +21,7 @@ public partial class LibInputBackend
       Console.Error.WriteLine("Cannot initialize XKB context");
       return;
     }
-    
+
     var names = new XkbRuleNames
     {
       Rules = configuration.Rules,
@@ -40,6 +40,7 @@ public partial class LibInputBackend
       Console.Error.WriteLine("Cannot initialize XKB keymap");
       return;
     }
+
     Console.WriteLine($"Using keyboard: {configuration.Model} {configuration.Layout} {configuration.Variant}");
 
     _modifiers = FindModifiers(_xkbKeymap).ToArray();
@@ -50,7 +51,6 @@ public partial class LibInputBackend
       Console.Error.WriteLine("Cannot initialize XKB state");
       return;
     }
-    
   }
 
   private static IEnumerable<Modifier> FindModifiers(IntPtr xkbKeymap)
@@ -62,7 +62,7 @@ public partial class LibInputBackend
       let name = xkb_keymap_mod_get_name(xkbKeymap, (uint)index)
       select (index, name)
     ).ToDictionary(x => x.name, x => (uint)x.index);
-    
+
     return
       from mod in new[]
       {
@@ -89,42 +89,39 @@ public partial class LibInputBackend
   {
     var kbEv = libinput_event_get_keyboard_event(ev);
     if (kbEv == IntPtr.Zero)
-      return; ;
-    
+      return;
+
     var scancode = libinput_event_keyboard_get_key(kbEv);
     var keycode = scancode + 8;
     var state = libinput_event_keyboard_get_key_state(kbEv);
-    
-    if (state == LibInputKeyState.LIBINPUT_KEY_STATE_PRESSED)
-      xkb_state_update_key(_xkbState, keycode, XkbKeyDirection.XKB_KEY_DOWN);
-    else if (state == LibInputKeyState.LIBINPUT_KEY_STATE_RELEASED)
-      xkb_state_update_key(_xkbState, keycode, XkbKeyDirection.XKB_KEY_UP);
+
+    var eventType = UpdateState();
+    if (!eventType.HasValue)
+      return;
 
     var symbol = new StringBuilder();
     xkb_state_key_get_utf8(_xkbState, keycode, symbol, 64);
 
     var keySym = xkb_state_key_get_one_sym(_xkbState, keycode);
-    
+
     var modifiers = RawInputModifiers.None;
     foreach (var modifier in _modifiers)
       if (xkb_state_mod_index_is_active(_xkbState, modifier.Index, XkbStateComponent.XKB_STATE_MODS_EFFECTIVE) != 0)
         modifiers |= modifier.Raw;
-    
+
     if (_inputRoot == null)
       return;
-    
+
     var args = new RawKeyEventArgs(
       _keyboard,
       libinput_event_keyboard_get_time_usec(kbEv),
       _inputRoot,
-      state == LibInputKeyState.LIBINPUT_KEY_STATE_PRESSED
-        ? RawKeyEventType.KeyDown
-        : RawKeyEventType.KeyUp,
+      eventType.Value,
       SymToKey(keySym),
       modifiers,
       ScanCodeToPhysicalKey(scancode),
       symbol.ToString()
-      );
+    );
     
 #if DEBUG
     var keySymName = new StringBuilder();
@@ -133,6 +130,32 @@ public partial class LibInputBackend
 #endif
     
     ScheduleInput(args);
+    
+    if (eventType.Value == RawKeyEventType.KeyDown)
+    {
+      ScheduleInput(new RawTextInputEventArgs(
+        _keyboard,
+        libinput_event_keyboard_get_time_usec(kbEv),
+        _inputRoot,
+        symbol.ToString()
+      ));
+    }
+    
+    RawKeyEventType? UpdateState()
+    {
+      if (state == LibInputKeyState.LIBINPUT_KEY_STATE_PRESSED)
+      {
+        xkb_state_update_key(_xkbState, keycode, XkbKeyDirection.XKB_KEY_DOWN);
+        return RawKeyEventType.KeyDown;
+      }
+      else if (state == LibInputKeyState.LIBINPUT_KEY_STATE_RELEASED)
+      {
+        xkb_state_update_key(_xkbState, keycode, XkbKeyDirection.XKB_KEY_UP);
+        return RawKeyEventType.KeyUp;
+      }
+
+      return null;
+    }
   }
 
   // ReSharper disable once CyclomaticComplexity
@@ -226,7 +249,7 @@ public partial class LibInputBackend
       085 => PhysicalKey.None,
       086 => PhysicalKey.IntlBackslash,
       087 => PhysicalKey.F11,
-      088 => PhysicalKey.F12,  
+      088 => PhysicalKey.F12,
       089 => PhysicalKey.None,
       090 => PhysicalKey.None,
       091 => PhysicalKey.None,
@@ -273,6 +296,7 @@ public partial class LibInputBackend
       163 => PhysicalKey.MediaTrackNext,
       164 => PhysicalKey.MediaPlayPause,
       165 => PhysicalKey.MediaTrackPrevious,
+      166 => PhysicalKey.MediaStop,
       190 => PhysicalKey.None, // audio mic mute
       217 => PhysicalKey.BrowserSearch,
       224 => PhysicalKey.None, // brightness -
@@ -412,6 +436,7 @@ public partial class LibInputBackend
       269025042 => Key.VolumeMute,
       269025043 => Key.VolumeUp,
       269025044 => Key.MediaPlayPause,
+      269025045 => Key.MediaStop,
       269025046 => Key.MediaPreviousTrack,
       269025047 => Key.MediaNextTrack,
       269025053 => Key.LaunchApplication2,

@@ -21,4 +21,8 @@
     <ItemGroup>
       <ProjectReference Include="..\Avalonia.LibInputExperiments\Avalonia.LibInputExperiments.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaResource Include="Assets/**" />
+    </ItemGroup>
 </Project>
