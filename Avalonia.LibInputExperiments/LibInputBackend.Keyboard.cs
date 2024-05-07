@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
+using Avalonia.Threading;
 using static Avalonia.LibInputExperiments.LibInputNativeUnsafeMethods;
 using static Avalonia.LibInputExperiments.LibXkbCommonNativeUnsafeMethods;
 
@@ -133,7 +134,8 @@ public partial class LibInputBackend
     
     ScheduleInput(args);
 
-    if (eventType.Value == RawKeyEventType.KeyDown && !string.IsNullOrEmpty(text))
+    var isNotControl = (args.Modifiers & RawInputModifiers.Control) == RawInputModifiers.None;
+    if (eventType.Value == RawKeyEventType.KeyDown && isNotControl && IsInput(text) )
     {
       ScheduleInput(new RawTextInputEventArgs(
         _keyboard,
@@ -158,6 +160,15 @@ public partial class LibInputBackend
 
       return null;
     }
+  }
+
+  private bool IsInput(string text)
+  {
+    if (string.IsNullOrEmpty(text))
+      return false;
+    if (text[0] < 32)
+      return false;
+    return true;
   }
 
   // ReSharper disable once CyclomaticComplexity
@@ -295,10 +306,12 @@ public partial class LibInputBackend
       129 => PhysicalKey.None,
       140 => PhysicalKey.LaunchApp2,
       142 => PhysicalKey.Sleep,
+      155 => PhysicalKey.LaunchMail,
       163 => PhysicalKey.MediaTrackNext,
       164 => PhysicalKey.MediaPlayPause,
       165 => PhysicalKey.MediaTrackPrevious,
       166 => PhysicalKey.MediaStop,
+      172 => PhysicalKey.BrowserHome,
       190 => PhysicalKey.None, // audio mic mute
       217 => PhysicalKey.BrowserSearch,
       224 => PhysicalKey.None, // brightness -
@@ -375,7 +388,9 @@ public partial class LibInputBackend
       122 => Key.Z,
       5307 => Key.Escape,
       65027 => Key.RightAlt,
+      65288 => Key.Back,
       65293 => Key.Return,
+      65307 => Key.Escape,
       65360 => Key.Home,
       65365 => Key.PageUp,
       65366 => Key.PageDown,
@@ -388,11 +403,13 @@ public partial class LibInputBackend
       65513 => Key.LeftAlt,
       65515 => Key.LWin,
       65289 => Key.Tab,
+      65300 => Key.Scroll,
       65361 => Key.Left,
       65362 => Key.Up,
       65363 => Key.Right,
       65364 => Key.Down,
       65379 => Key.Insert,
+      65383 => Key.None, // context menu
       65407 => Key.NumLock,
       65421 => Key.Enter, // NumPad
       65429 => Key.Home, // Numpad
@@ -441,6 +458,9 @@ public partial class LibInputBackend
       269025045 => Key.MediaStop,
       269025046 => Key.MediaPreviousTrack,
       269025047 => Key.MediaNextTrack,
+      269025048 => Key.BrowserHome,
+      269025049 => Key.LaunchMail,
+      269025051 => Key.BrowserSearch,
       269025053 => Key.LaunchApplication2,
       269025071 => Key.Sleep,
       _ => Key.None,
