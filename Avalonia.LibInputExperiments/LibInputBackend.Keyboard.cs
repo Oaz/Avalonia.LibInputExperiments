@@ -114,10 +114,11 @@ public partial class LibInputBackend
       return;
 
     var text = symbol.ToString();
-
+    var eventTime = libinput_event_keyboard_get_time_usec(kbEv);
+    
     var args = new RawKeyEventArgs(
       _keyboard,
-      libinput_event_keyboard_get_time_usec(kbEv),
+      eventTime,
       _inputRoot,
       eventType.Value,
       SymToKey(keySym),
@@ -139,7 +140,7 @@ public partial class LibInputBackend
     {
       ScheduleInput(new RawTextInputEventArgs(
         _keyboard,
-        libinput_event_keyboard_get_time_usec(kbEv),
+        eventTime,
         _inputRoot,
         text
       ));
