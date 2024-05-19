@@ -5,6 +5,11 @@
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <IsFbDev>False</IsFbDev>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(IsFbDev)'=='True'">
+        <DefineConstants>$(DefineConstants);FBDEV</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using System;
+﻿using System;
 using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.ReactiveUI;
@@ -10,26 +9,24 @@ class Program
 {
   [STAThread]
   public static void Main(string[] args) => BuildAvaloniaApp()
-#if DEBUG
-    .StartWithClassicDesktopLifetime(args);
-#else
+#if FBDEV
     .StartLinuxFbDev(args, inputBackend: CreateInputBackend());
+#else
+    .StartWithClassicDesktopLifetime(args);
 #endif  
   private static AppBuilder BuildAvaloniaApp()
     => AppBuilder.Configure<App>()
-#if DEBUG
+#if FBDEV
+      .UseInputBackendDiagnostics()
+#else
       .UsePlatformDetect()
-#endif  
+#endif
       .With(new FontManagerOptions
       {
         DefaultFamilyName = "avares://Avalonia.LibInputExperiments.Demo/Assets/Noto_Sans_Symbols_2/NotoSansSymbols2-Regular.ttf#Noto Sans Symbols 2"
       })
       .LogToTrace(level:LogEventLevel.Verbose)
-      .UseReactiveUI()
-      .AfterSetup(a =>
-      {
-        Console.WriteLine("Setup complete");
-      });
+      .UseReactiveUI();
   
   private static LibInputBackend CreateInputBackend()
   {
