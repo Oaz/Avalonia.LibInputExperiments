@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <LangVersion>11</LangVersion>
@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Avalonia" Version="11.0.10" />
-      <PackageReference Include="Avalonia.LinuxFramebuffer" Version="11.0.10" />
+        <PackageReference Include="Avalonia" Version="11.0.10" />
+        <PackageReference Include="Avalonia.LinuxFramebuffer" Version="11.0.10" />
     </ItemGroup>
 
 </Project>
